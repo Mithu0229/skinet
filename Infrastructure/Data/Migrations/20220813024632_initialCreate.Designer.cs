@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Infrastructure.Data.Migrations
+namespace Infrastructure.data.migrations
 {
     [DbContext(typeof(StoreContext))]
-    [Migration("20220731003845_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20220813024632_initialCreate")]
+    partial class initialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
