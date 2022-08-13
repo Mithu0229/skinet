@@ -35,6 +35,12 @@ builder.Services.Configure<ApiBehaviorOptions>(options=> //for error
     };
 });
 
+builder.Services.AddCors(opt=>{//for cors
+    opt.AddPolicy("CorsPolicy",policy=>{
+        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200");
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -48,7 +54,7 @@ app.UseStatusCodePagesWithReExecute("errors/{0}"); //for error
 
 app.UseHttpsRedirection();
 
-
+app.UseCors("CorsPolicy");//for cors
 app.UseAuthorization();
 
 app.MapControllers();
