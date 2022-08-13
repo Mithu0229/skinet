@@ -1,7 +1,10 @@
 
+using API.Errors;
 using API.Helpers;
+using API.Middleware;
 using Core.Interfaces;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -18,15 +21,30 @@ builder.Services.AddDbContext<StoreContext>(x=>
 x.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.Configure<ApiBehaviorOptions>(options=> //for error
+{
+    options.InvalidModelStateResponseFactory=actionContext=>
+    {
+        var errors=actionContext.ModelState.Where(e=>e.Value.Errors.Count>0)
+        .SelectMany(x=>x.Value.Errors)
+        .Select(x=>x.ErrorMessage).ToArray();
+        var errorResponse = new ApiValidationErrorReponse{
+            Errors=errors
+        };
+        return new BadRequestObjectResult(errorResponse);
+    };
+});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionMiddleware>();//for error
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseStatusCodePagesWithReExecute("errors/{0}"); //for error
 
 app.UseHttpsRedirection();
 
