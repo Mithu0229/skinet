@@ -11,6 +11,7 @@ using Core.Entities;
 using Core.Interfaces;
 using Core.Specifications;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -33,8 +34,9 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
+        
         [HttpGet]  
-        public async Task<ActionResult<Pagination<ProductToReturnDto>>> GetProducts(ProductSpecParams productParams)
+        public async Task<ActionResult<Pagination<ProductToReturnDto>>> GetProducts([FromQuery] ProductSpecParams productParams)
         {
             var spec= new ProductWithTypesAndBrandsSpecification(productParams);
             var countSpec= new ProductWithFiltersForCountSpecification(productParams);
@@ -44,7 +46,7 @@ namespace API.Controllers
             var data =_mapper.Map<IReadOnlyList<Product>,IReadOnlyList<ProductToReturnDto>>(products);
 
 
-            return Ok(new Pagination<ProductToReturnDto>(productParams.PageIndex,productParams.PageSize,totalItems,data));
+            return Ok(new Pagination<ProductToReturnDto>(productParams.PageSize,productParams.PageIndex,totalItems,data));
         }
 
        [HttpGet("{id}")]

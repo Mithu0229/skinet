@@ -18,6 +18,7 @@
     ]
   },
   "angularCompilerOptions": {
+    "strictDomEventTypes":false,// optional for $event.target.value
     "enableI18nLegacyMessageIdFormat": false
   }
 }

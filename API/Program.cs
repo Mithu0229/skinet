@@ -37,12 +37,20 @@ builder.Services.Configure<ApiBehaviorOptions>(options=> //for error
 
 builder.Services.AddCors(opt=>{//for cors
     opt.AddPolicy("CorsPolicy",policy=>{
-        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200");
+        policy.WithOrigins("https://localhost:5001", "http://localhost:4200")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
     });
 });
 
 var app = builder.Build();
 
+    // app.UseStaticFiles(new StaticFileOptions()
+    // {
+    //     FileProvider = new PhysicalFileProvider(
+    //         Path.Combine(Directory.GetCurrentDirectory(), @"images")),
+    //     RequestPath = new PathString("images/")
+    // });
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionMiddleware>();//for error
 if (app.Environment.IsDevelopment())
