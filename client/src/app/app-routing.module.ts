@@ -9,11 +9,12 @@ import { ShopComponent } from './shop/shop.component';
 const routes: Routes = [
   {path:'', component:HomeComponent,data:{breadcrumb:'Home'}},
   {path:'shop',loadChildren:()=>import('./shop/shop.module').then(map=>map.ShopModule),data:{breadcrumb:'Shop'}},
+  {path:'basket',loadChildren:()=>import('./basket/basket.module').then(map=>map.BasketModule),data:{breadcrumb:'Basket'}},
+
   {path:'not-found', component:NotFoundComponent,data:{breadcrumb:'not-found'}},
   {path:'server-error', component:ServerErrorComponent,data:{breadcrumb:'server-error'}},
   {path:'**',redirectTo:'not-found',pathMatch:'full'},
-  {path:'basket',loadChildren:()=>import('./basket/basket.module').then(map=>map.BasketModule),data:{breadcrumb:'Basket'}},
-
+ 
 ];
 
 @NgModule({
