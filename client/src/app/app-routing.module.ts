@@ -11,6 +11,8 @@ const routes: Routes = [
   {path:'shop',loadChildren:()=>import('./shop/shop.module').then(map=>map.ShopModule),data:{breadcrumb:'Shop'}},
   {path:'basket',loadChildren:()=>import('./basket/basket.module').then(map=>map.BasketModule),data:{breadcrumb:'Basket'}},
 
+  {path:'checkout',loadChildren:()=>import('./checkout/checkout.module').then(map=>map.CheckoutModule),data:{breadcrumb:'Checkout'}},
+
   {path:'not-found', component:NotFoundComponent,data:{breadcrumb:'not-found'}},
   {path:'server-error', component:ServerErrorComponent,data:{breadcrumb:'server-error'}},
   {path:'**',redirectTo:'not-found',pathMatch:'full'},
