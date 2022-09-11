@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace API.Errors
 {
-    public class ApiValidationErrorReponse : ApiResponse//for error
+    public class ApiValidationErrorResponse : ApiResponse//for error
     {
-        public ApiValidationErrorReponse() : base(400)
+        public ApiValidationErrorResponse() : base(400)
         {
         }
         public IEnumerable<string> Errors { get; set; }

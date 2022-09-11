@@ -18,5 +18,6 @@ namespace Core.Entities
 
         public string Id { get; set; }
         public List<BasketItem> Items { get; set; } = new List<BasketItem>();
+        public string PaymentIntentId { get; set; }
     }
 }
