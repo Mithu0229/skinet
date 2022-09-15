@@ -1,50 +1,95 @@
-using System;
-using System.Threading.Tasks;
-using Core.Entities.Identity;
+
+using API.Errors;
+using API.Extensions;
+using API.Helpers;
+using API.Middleware;
+using Core.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Identity;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
+using Infrastructure.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.FileProviders;
+using StackExchange.Redis;
 
-namespace API
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddScoped<ITokenService,TokenService>();
+builder.Services.AddScoped<IProductRepository,ProductRepository>();
+builder.Services.AddScoped<IBasketRepository,BasketRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder.Services.AddScoped(typeof(IGenericRepository<>), (typeof(GenericRepository<>)));
+builder.Services.AddAutoMapper(typeof(MappingProfiles));
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddDbContext<StoreContext>(x=>
+x.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddDbContext<AppIdentityDbContext>(x=>
+x.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(c=>{
+    var configuration=ConfigurationOptions.Parse(builder.Configuration.GetConnectionString("Redis"),true);
+    return ConnectionMultiplexer.Connect(configuration);
+});
+
+var provider = builder.Services.BuildServiceProvider();
+var configuration = provider.GetRequiredService<IConfiguration>();
+
+builder.Services.AddIdentityServices(configuration);
+
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.Configure<ApiBehaviorOptions>(options=> //for error
 {
-    public class Program
+    options.InvalidModelStateResponseFactory=actionContext=>
     {
-           public static async Task Main(string[] args)
-        {
-            var host = CreateHostBuilder(args).Build();
-            using (var scope = host.Services.CreateScope())
-            {
-                var services = scope.ServiceProvider;
-                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-                try 
-                {
-                    var context = services.GetRequiredService<StoreContext>();
-                    await context.Database.MigrateAsync();
-                    await StoreContextSeed.SeedAsync(context, loggerFactory);
+        var errors=actionContext.ModelState.Where(e=>e.Value.Errors.Count>0)
+        .SelectMany(x=>x.Value.Errors)
+        .Select(x=>x.ErrorMessage).ToArray();
+        var errorResponse = new ApiValidationErrorResponse{
+            Errors=errors
+        };
+        return new BadRequestObjectResult(errorResponse);
+    };
+});
 
-                    var userManager = services.GetRequiredService<UserManager<AppUser>>();
-                    var identityContext = services.GetRequiredService<AppIdentityDbContext>();
-                    await identityContext.Database.MigrateAsync();
-                    await AppIdentityDbContextSeed.SeedUserAsync(userManager);
-                }
-                catch (Exception ex)
-                {
-                    var logger = loggerFactory.CreateLogger<Program>();
-                    logger.LogError(ex, "An error occured during migration");
-                }
-            }
-            host.Run();
-        }
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-    }
-    }
+builder.Services.AddCors(opt=>{//for cors
+    opt.AddPolicy("CorsPolicy",policy=>{
+        policy.WithOrigins( "http://localhost:4200")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+    });
+});
+
+var app = builder.Build();
+
+    // app.UseStaticFiles(new StaticFileOptions()
+    // {
+    //     FileProvider = new PhysicalFileProvider(
+    //         Path.Combine(Directory.GetCurrentDirectory(), @"images")),
+    //     RequestPath = new PathString("images/")
+    // });
+    app.UseStaticFiles();
+// Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionMiddleware>();//for error
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+app.UseStatusCodePagesWithReExecute("errors/{0}"); //for error
+
+app.UseHttpsRedirection();
+
+app.UseCors("CorsPolicy");//for cors
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

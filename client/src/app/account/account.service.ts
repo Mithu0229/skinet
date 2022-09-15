@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, of, ReplaySubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { IAddress } from '../shared/models/address';
 import { IUser } from '../shared/models/user';
 
 @Injectable({
@@ -18,25 +19,27 @@ currentUser$ =this.currentUserSource.asObservable();
 
   
 
-  loadCurrentUser(token:string){
-    console.log(token,'load current user-----------');
-    if(token===null){
+  loadCurrentUser(token: string) {
+    if (token === null) {
       this.currentUserSource.next(null);
-      console.log(token,'load current user but token is null -----------');
+      console.log('token is null');
       return of(null);
     }
-    let headers=new HttpHeaders();
-    headers.set('Authorization',`Bearer ${token}`);
-    return this.http.get(this.baseUrl+'account',{headers}).pipe(
-      map((user:IUser)=>{
-        if(user){
-          localStorage.setItem('token',user.token);
+
+    let headers = new HttpHeaders();
+    headers = headers.set('Authorization', `Bearer ${token}`);
+
+    console.log('header ',headers);
+    return this.http.get(this.baseUrl + 'account', {headers}).pipe(
+      map((user: IUser) => {
+        if (user) {
+          console.log('find user ',user);
+          localStorage.setItem('token', user.token);
           this.currentUserSource.next(user);
         }
       })
-    )
+    );
   }
-
   login(values:any){
     return this.http.post(this.baseUrl+'account/login', values).pipe(
       map((user:IUser)=>{
@@ -67,5 +70,13 @@ currentUser$ =this.currentUserSource.asObservable();
 
   checkEmailExists(email:string){
     return this.http.get(this.baseUrl+'account/emailexists?=email'+email);
+  }
+
+  getUserAddress(){
+    return this.http.get<IAddress>(this.baseUrl+'account/address');
+  }
+
+  updateUserAddress(address:IAddress){
+    return this.http.put<IAddress>(this.baseUrl+'account/address', address);
   }
 }

@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { NotFoundComponent } from './core/not-found/not-found.component';
 import { ServerErrorComponent } from './core/server-error/server-error.component';
+import { TestErrorComponent } from './core/test-error/test-error.component';
 import { HomeComponent } from './home/home.component';
 
 
@@ -13,6 +14,8 @@ const routes: Routes = [
   {path:'checkout',canActivate :[AuthGuard],loadChildren:()=>import('./checkout/checkout.module').then(map=>map.CheckoutModule),data:{breadcrumb:'Checkout'}},
   {path:'account',loadChildren:()=>import('./account/account.module').then(map=>map.AccountModule),data:{breadcrumb:{skip:true}}},
 
+  {path: 'test-error', component: TestErrorComponent},
+  
   {path:'not-found', component:NotFoundComponent,data:{breadcrumb:'not-found'}},
   {path:'server-error', component:ServerErrorComponent,data:{breadcrumb:'server-error'}},
   {path:'**',redirectTo:'not-found',pathMatch:'full'},
