@@ -11,39 +11,41 @@ import { ShopService } from '../shop.service';
   styleUrls: ['./product-details.component.scss']
 })
 export class ProductDetailsComponent implements OnInit {
-product:IProduct;
-quantity=1;
-  constructor(private shopService:ShopService, 
-    private activeRoute: ActivatedRoute, 
-    private bcService:BreadcrumbService,
-    private basketService: BasketService) { }
+  product: IProduct;
+  quantity = 1;
 
-  ngOnInit(): void {
+  constructor(private shopService: ShopService,
+              private activateRoute: ActivatedRoute,
+              private bcService: BreadcrumbService,
+              private basketService: BasketService) {
+    this.bcService.set('@productDetails', '');
+  }
+
+  ngOnInit() {
     this.loadProduct();
   }
 
-  addItemToBasket(){
-    this.basketService.addItemToBasket(this.product,this.quantity);
+  addItemToBasket() {
+    this.basketService.addItemToBasket(this.product, this.quantity);
   }
 
-  incrementQuantity(){
+  incrementQuantity() {
     this.quantity++;
   }
 
-  decrementQuantity(){
-    if(this.quantity >1){
+  decrementQuantity() {
+    if (this.quantity > 1) {
       this.quantity--;
     }
-    
   }
 
-  loadProduct(){
-    this.shopService.getProduct(+this.activeRoute.snapshot.paramMap.get('id')).subscribe(product=>{
-      this.bcService.set('@productDetail',product.name);
-      this.product=product;
-    },error=>{
+  loadProduct() {
+    this.shopService.getProduct(+this.activateRoute.snapshot.paramMap.get('id')).subscribe(product => {
+      this.product = product;
+      this.bcService.set('@productDetails', product.name);
+    }, error => {
       console.log(error);
-    })
+    });
   }
 
 }
